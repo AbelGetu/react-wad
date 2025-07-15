@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import {
   Sheet,
   SheetContent,
@@ -21,9 +21,27 @@ import { useSelector } from 'react-redux';
 import { LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { Sidebar } from './sidebar';
 import type { UserInfo } from '@/types';
+import { useDispatch } from 'react-redux';
+import { clearCredentials } from '@/slices/authSlice';
+import { useLogoutMutation } from '@/slices/usersApiSlice';
 
 export function Layout() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [logout] = useLogoutMutation();
+
   const { userInfo } = useSelector((state: { auth: { userInfo: UserInfo } }) => state.auth);
+
+  const handleLogout = async () => {
+      try {
+        await logout();
+        // You might want to add additional logout logic here
+        dispatch(clearCredentials()); // Clear user info from Redux store
+        navigate('/login'); // Redirect to login page
+      } catch (err) {
+        console.error('Failed to logout:', err);
+      }
+    };
 
   return (
     <div className="flex h-screen bg-background">
@@ -108,7 +126,9 @@ export function Layout() {
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                    >
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
                     </DropdownMenuItem>
